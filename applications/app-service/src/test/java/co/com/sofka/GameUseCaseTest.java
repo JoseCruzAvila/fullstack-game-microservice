@@ -1,14 +1,10 @@
 package co.com.sofka;
 
-import co.com.sofka.api.game.GameHandler;
 import co.com.sofka.api.game.GameRouterRest;
-import co.com.sofka.event.EventPublisher;
 import co.com.sofka.model.events.GameStarted;
 import co.com.sofka.model.game.Game;
 import co.com.sofka.model.game.gateways.GameRepository;
 import co.com.sofka.model.player.Player;
-import co.com.sofka.usecase.creategame.CreateGameUseCase;
-import co.com.sofka.usecase.startgame.StartGameUseCase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

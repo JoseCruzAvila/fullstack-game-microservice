@@ -46,7 +46,7 @@ public class GameHandler {
         var request = startGameUseCase.gameById(gameId)
                 .flatMap(startGameUseCase::startGame);
 
-        //request.subscribe(publisher::publish);
+        request.subscribe(publisher::publish);
 
         return request.flatMap(game -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
