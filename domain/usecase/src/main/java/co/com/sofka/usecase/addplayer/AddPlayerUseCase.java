@@ -11,7 +11,7 @@ public class AddPlayerUseCase {
     private final GameRepository repository;
 
     public Mono<Game> addPlayer(String gameId, Player player) {
-        var gameToUpdate = repository.findById("gameId", gameId);
+        var gameToUpdate = repository.findBy("gameId", gameId);
         return gameToUpdate.map(game -> {
             game.addPlayer(player);
             return game;

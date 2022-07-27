@@ -53,4 +53,8 @@ public class Game {
 
         return cardSelected;
     }
+
+    public Boolean isPlaying() {
+        return this.playing;
+    }
 }

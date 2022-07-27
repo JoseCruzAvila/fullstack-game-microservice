@@ -5,6 +5,10 @@ import co.com.sofka.model.game.Game;
 
 public class GameStarted extends DomainEvent<Game> {
 
+    public GameStarted() {
+        super("game.GameStarted");
+    }
+
     public GameStarted(String aggregateId, Game source) {
         super("game.GameStarted", aggregateId, source);
     }

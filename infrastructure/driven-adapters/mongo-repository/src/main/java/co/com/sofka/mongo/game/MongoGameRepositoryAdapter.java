@@ -27,68 +27,10 @@ public class MongoGameRepositoryAdapter extends AdapterOperations<Game, GameDocu
         this.mongoTemplate = mongoTemplate;
     }
 
-    @Override
-    public Flux<Game> findAll() {
-        return mongoTemplate.findAll(GameDocument.class)
-                .map(this::toEntity);
-    }
-
-    public Mono<Game> findById(String criteria, String toFind) {
+    public Mono<Game> findBy(String criteria, String toFind) {
         var condition = Query.query(Criteria.where(criteria).is(toFind));
         return mongoTemplate.find(condition, GameDocument.class)
                 .map(this::toEntity)
                 .single();
-    }
-
-    @Override
-    protected GameDocument toData(Game game) {
-        GameDocument gameDocument = new GameDocument();
-        gameDocument.setId(game.getId());
-        gameDocument.setGameId(game.getGameId());
-        gameDocument.setPlaying(game.getPlaying());
-        gameDocument.setWinner(game.getWinner() != null ? this.toData(game.getWinner()) : null);
-        gameDocument.setPlayers(game.getPlayers().stream()
-                .map(this::toData)
-                .collect(Collectors.toSet()));
-
-        return gameDocument;
-    }
-
-    protected PlayerDocument toData(Player player) {
-        PlayerDocument playerDocument = new PlayerDocument();
-        playerDocument.setName(player.getName());
-        playerDocument.setEmail(player.getEmail());
-        playerDocument.setPoints(player.getPoints());
-        playerDocument.setDeck(player.getDeck().stream()
-                .map(card -> mapper.map(card, CardDocument.class))
-                .collect(Collectors.toSet()));
-
-        return playerDocument;
-    }
-
-    @Override
-    protected Game toEntity(GameDocument gameDocument) {
-        Game game = new Game();
-        game.setId(gameDocument.getId());
-        game.setGameId(gameDocument.getGameId());
-        game.setPlaying(gameDocument.getPlaying());
-        game.setWinner(gameDocument.getWinner() != null ? this.toEntity(gameDocument.getWinner()) : null);
-        game.setPlayers(gameDocument.getPlayers().stream()
-                .map(this::toEntity)
-                .collect(Collectors.toSet()));
-
-        return game;
-    }
-
-    protected Player toEntity(PlayerDocument playerDocument) {
-        Player player = new Player();
-        player.setName(playerDocument.getName());
-        player.setEmail(playerDocument.getEmail());
-        player.setPoints(playerDocument.getPoints());
-        player.setDeck(playerDocument.getDeck().stream()
-                .map(card -> mapper.map(card, Card.class))
-                .collect(Collectors.toSet()));
-
-        return player;
     }
 }

@@ -8,4 +8,6 @@ public interface PlayerRepository {
     Mono<Player> save(Player player);
 
     Flux<Player> saveAll(Flux<Player> players);
+
+    Mono<Player> findBy(String criteria, String toFind);
 }
