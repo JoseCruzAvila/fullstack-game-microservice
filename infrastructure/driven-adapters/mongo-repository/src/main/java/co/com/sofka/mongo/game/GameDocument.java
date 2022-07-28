@@ -18,4 +18,8 @@ public class GameDocument {
     private Boolean playing;
     private PlayerDocument winner;
     private Set<PlayerDocument> players;
+    private Integer maxCardsByPlayer;
+    private Integer maxPlayers;
+    private Integer minPlayers;
+    private Integer currentPlayersNumber;
 }
