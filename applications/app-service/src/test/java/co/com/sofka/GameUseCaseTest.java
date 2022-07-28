@@ -1,6 +1,8 @@
 package co.com.sofka;
 
 import co.com.sofka.api.game.GameRouterRest;
+import co.com.sofka.event.EventPublisher;
+import co.com.sofka.generic.events.DomainEvent;
 import co.com.sofka.model.events.GameStarted;
 import co.com.sofka.model.game.Game;
 import co.com.sofka.model.game.gateways.GameRepository;
@@ -21,6 +23,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 
 @RunWith(SpringRunner.class)
@@ -33,6 +36,8 @@ class GameUseCaseTest {
     private WebTestClient webTestClient;
     @Autowired
     private GameRepository repository;
+    @Autowired
+    private EventPublisher<DomainEvent> publisher;
 
     @BeforeEach
     public void setUp() {
@@ -42,7 +47,7 @@ class GameUseCaseTest {
     @Test
     @DisplayName("POST /game success")
     void testCreateGameSuccess() {
-        Game game = new Game("prueba", new Player());
+        Game game = new Game("prueba", new Player(), 2);
         doReturn(Mono.just(game)).when(repository).save(any());
 
         webTestClient.post()
@@ -55,7 +60,7 @@ class GameUseCaseTest {
                 .expectBody(Game.class)
                 .value(response -> {
                     Assertions.assertEquals("prueba", response.getGameId());
-                    Assertions.assertEquals(5, response.getMaxCards());
+                    Assertions.assertEquals(5, response.getMaxCardsByPlayer());
                     Assertions.assertFalse(response.getPlaying());
                 });
     }
@@ -63,7 +68,7 @@ class GameUseCaseTest {
     @Test
     @DisplayName("POST /game already exist")
     void testCreateGameAlreadyExist() {
-        Game game = new Game("prueba", new Player());
+        Game game = new Game("prueba", new Player(), 2);
         doReturn(Mono.error(new DuplicateKeyException("gameId dup key"))).when(repository).save(any());
 
         webTestClient.post()
@@ -80,23 +85,41 @@ class GameUseCaseTest {
     }
 
     @Test
+    @DisplayName("POST /game wrong players number")
+    void testCreateGameWrongPlayerNumber() {
+        Game game = new Game("prueba", new Player(), 7);
+
+        webTestClient.post()
+                .uri("/game")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(game), Game.class)
+                .exchange()
+                .expectStatus().is4xxClientError()
+                .expectBody(String.class)
+                .value(response -> {
+                    Assertions.assertEquals("The game must have at least 2 players and max 6", response);
+                });
+    }
+
+    @Test
     @DisplayName("POST /game/start/prueba success")
     void testStartGameSuccess() {
-        doReturn(Mono.just(new Game("prueba", new Player()))).when(repository).findBy(any(), any());
-        doReturn(Mono.just(new Game("prueba", new Player()))).when(repository).save(any());
+        doReturn(Mono.just(new Game("prueba", new Player(), 2))).when(repository).findBy(any(), any());
+        doReturn(Mono.just(new Game("prueba", new Player(), 2))).when(repository).save(any());
 
         webTestClient.put()
                 .uri("/game/start/prueba")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(new Game("prueba", new Player())), Game.class)
+                .body(Mono.just(new Game("prueba", new Player(), 2)), Game.class)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(GameStarted.class)
                 .value(response -> {;
                     Assertions.assertEquals("game.GameStarted", response.getType());
                     Assertions.assertEquals("prueba", response.getSource().getGameId());
-                    Assertions.assertEquals(5, response.getSource().getMaxCards());
+                    Assertions.assertEquals(5, response.getSource().getMaxCardsByPlayer());
                     Assertions.assertTrue(response.getSource().getPlaying());
                 });
     }
@@ -104,7 +127,7 @@ class GameUseCaseTest {
     @Test
     @DisplayName("POST /game/start/prueba not found")
     void testStartGameNotFound() {
-        Game game = new Game("prueba", new Player());
+        Game game = new Game("prueba", new Player(), 2);
 
         doReturn(Mono.error(new Exception())).when(repository).findBy(any(), any());
 
@@ -124,7 +147,7 @@ class GameUseCaseTest {
     @Test
     @DisplayName("POST /game/start/prueba already started")
     void testStartGameAlreadyStarted() {
-        Game game = new Game("prueba", new Player());
+        Game game = new Game("prueba", new Player(), 2);
         game.setPlaying(true);
         doReturn(Mono.just(game)).when(repository).findBy(any(), any());
 

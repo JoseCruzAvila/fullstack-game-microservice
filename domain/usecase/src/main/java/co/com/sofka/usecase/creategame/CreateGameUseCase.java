@@ -8,14 +8,28 @@ import co.com.sofka.model.game.gateways.GameRepository;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
+import java.util.function.Function;
+
 @RequiredArgsConstructor
 public class CreateGameUseCase extends UseCase<GameCreated, Game> {
     private final GameRepository repository;
 
     public Mono<Game> createGame(Game game) {
-        return repository.save(game)
-                .onErrorResume(error -> Mono.error(error.getMessage()
-                        .contains("gameId dup key") ? new GameException("The given gameId already exists")
-                        : error));
+        return Mono.just(game)
+                .filter(this::validateGamePlayers)
+                .flatMap(repository::save)
+                .switchIfEmpty(Mono.error(new GameException("The game must have at least 2 players and max 6")))
+                .onErrorResume(this.getError());
+    }
+
+    private boolean validateGamePlayers(Game game) {
+        return game.getCurrentPlayersNumber() >= game.getMinPlayers() &&
+                game.getCurrentPlayersNumber() <= game.getMaxPlayers();
+    }
+
+    private Function<Throwable, Mono<Game>> getError() {
+        return error -> Mono.error(error.getMessage()
+                .contains("gameId dup key") ? new GameException("The given gameId already exists")
+                : error);
     }
 }
