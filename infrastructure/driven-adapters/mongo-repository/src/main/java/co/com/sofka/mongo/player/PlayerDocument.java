@@ -18,4 +18,5 @@ public class PlayerDocument {
     private String email;
     private Double points;
     private Set<CardDocument> deck;
+    private Boolean inTurn;
 }

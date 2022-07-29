@@ -12,12 +12,14 @@ public class Player {
     private String email;
     private Double points;
     private Set<Card> deck;
+    private Boolean inTurn;
 
     public Player() {
         this.name = null;
         this.email = null;
         this.points = 0.0;
         this.deck = Set.of();
+        this.inTurn = false;
     }
 
     public Player(String id, String name, String email) {
@@ -26,6 +28,7 @@ public class Player {
         this.email = email;
         this.points = 0.0;
         this.deck = Set.of();
+        this.inTurn = false;
     }
 
     public void addCardToDeck(Card card) {

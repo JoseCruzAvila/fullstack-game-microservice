@@ -2,6 +2,7 @@ package co.com.sofka.model.game;
 
 import co.com.sofka.model.card.Card;
 import co.com.sofka.model.player.Player;
+import co.com.sofka.model.table.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,6 +18,7 @@ public class Game {
     private Boolean playing;
     private Player winner;
     private Set<Player> players;
+    private Table table;
     private Integer maxCardsByPlayer;
     private Integer maxPlayers;
     private Integer minPlayers;
@@ -29,6 +31,7 @@ public class Game {
         this.maxCardsByPlayer = 5;
         this.maxPlayers = 6;
         this.minPlayers = 2;
+        this.table = new Table();
     }
 
     public Game(String id, Player player, Integer currentPlayersNumber) {
@@ -40,6 +43,7 @@ public class Game {
         this.maxPlayers = 6;
         this.minPlayers = 2;
         this.currentPlayersNumber = currentPlayersNumber;
+        this.table = new Table();
     }
 
     public void addPlayer(Player player) {
