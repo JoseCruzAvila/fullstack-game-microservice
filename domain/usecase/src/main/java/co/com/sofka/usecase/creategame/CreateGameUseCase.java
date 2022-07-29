@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
-public class CreateGameUseCase extends UseCase<GameCreated, Game> {
+public class CreateGameUseCase extends UseCase {
     private final GameRepository repository;
 
     public Mono<Game> createGame(Game game) {

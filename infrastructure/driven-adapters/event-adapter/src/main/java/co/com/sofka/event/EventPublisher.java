@@ -10,6 +10,6 @@ public class EventPublisher<T> {
     private ApplicationEventPublisher publisher;
 
     public void publish(T entity) {
-        publisher.publishEvent(new AuditEvent<T>(entity));
+        publisher.publishEvent(new AuditEvent<>(entity));
     }
 }

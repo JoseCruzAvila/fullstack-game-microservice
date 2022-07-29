@@ -26,7 +26,7 @@ public class RabbitMQConsumer {
         this.events = events;
     }
 
-    @RabbitListener(bindings = @QueueBinding(
+    /*@RabbitListener(bindings = @QueueBinding(
             value = @Queue(value = "game.handler", durable = "true"),
             exchange = @Exchange(value = "fullstack.game", type = "fanout"),
             key = "game.#"
@@ -41,5 +41,5 @@ public class RabbitMQConsumer {
                         .contains(event.getType()))
                 .map(event -> new Gson().fromJson(message.getPayload(), event.getClass()))
                 .subscribe(subscriber::onNext);
-    }
+    }*/
 }

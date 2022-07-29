@@ -2,11 +2,13 @@ package co.com.sofka.config;
 
 import co.com.sofka.generic.events.DomainEvent;
 import co.com.sofka.generic.usecase.UseCase;
+import co.com.sofka.model.events.CardAddedToPlayer;
 import co.com.sofka.model.events.GameStarted;
 import co.com.sofka.model.game.Game;
 import co.com.sofka.usecase.splitcards.SplitCardsUseCase;
 import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.core.FanoutExchange;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.reactive.HiddenHttpMethodFilter;

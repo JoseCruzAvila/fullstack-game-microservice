@@ -28,14 +28,14 @@ public class AddPlayerToGameUseCase {
     private Mono<Game> verifyErrors(Game game) {
         var data = Mono.just(game);
 
+        if (game.getCurrentPlayersNumber().equals(game.getPlayers().size()))
+            data = Mono.error(new GameException("The given game already has the maximum numbers of players connected"));
+
         if (game.isPlaying().equals(true))
             data = Mono.error(new GameException("The given game already is being played"));
 
         if (this.verifyGameEnded().test(game))
             data = Mono.error(new GameException("The given game has been ended"));
-
-        if (game.getCurrentPlayersNumber().equals(game.getPlayers().size()))
-            data = Mono.error(new GameException("The given game already has the maximum numbers of players connected"));
 
         return data;
     }
