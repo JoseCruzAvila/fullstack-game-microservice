@@ -4,6 +4,7 @@ import co.com.sofka.api.game.GameRouterRest;
 import co.com.sofka.event.EventPublisher;
 import co.com.sofka.generic.events.DomainEvent;
 import co.com.sofka.model.events.GameStarted;
+import co.com.sofka.model.events.PlayerAddedToGame;
 import co.com.sofka.model.game.Game;
 import co.com.sofka.model.game.gateways.GameRepository;
 import co.com.sofka.model.player.Player;
@@ -103,7 +104,7 @@ class GameUseCaseTest {
     }
 
     @Test
-    @DisplayName("POST /game/start/prueba success")
+    @DisplayName("PUT /game/start/prueba success")
     void testStartGameSuccess() {
         doReturn(Mono.just(new Game("prueba", new Player(), 2))).when(repository).findBy(any(), any());
         doReturn(Mono.just(new Game("prueba", new Player(), 2))).when(repository).save(any());
@@ -125,7 +126,7 @@ class GameUseCaseTest {
     }
 
     @Test
-    @DisplayName("POST /game/start/prueba not found")
+    @DisplayName("PUT /game/start/prueba not found")
     void testStartGameNotFound() {
         Game game = new Game("prueba", new Player(), 2);
 
@@ -145,7 +146,7 @@ class GameUseCaseTest {
     }
 
     @Test
-    @DisplayName("POST /game/start/prueba already started")
+    @DisplayName("PUT /game/start/prueba already started")
     void testStartGameAlreadyStarted() {
         Game game = new Game("prueba", new Player(), 2);
         game.setPlaying(true);
@@ -161,6 +162,66 @@ class GameUseCaseTest {
                 .expectBody(String.class)
                 .value(response -> {
                     Assertions.assertEquals("The given game already is being played", response);
+                });
+    }
+
+    @Test
+    @DisplayName("PUT /game/join/prueba already started")
+    void testJoinGameAlreadyStarted() {
+        Game game = new Game("prueba", new Player(), 2);
+        game.setPlaying(true);
+        doReturn(Mono.just(game)).when(repository).findBy(any(), any());
+
+        webTestClient.put()
+                .uri("/game/join/prueba")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(new Player()), Player.class)
+                .exchange()
+                .expectStatus().is4xxClientError()
+                .expectBody(String.class)
+                .value(response -> {
+                    Assertions.assertEquals("The given game already is being played", response);
+                });
+    }
+
+    @Test
+    @DisplayName("PUT /game/join/prueba has ended")
+    void testJoinGameHasEnded() {
+        Game game = new Game("prueba", new Player(), 2);
+        game.setWinner(new Player());
+        doReturn(Mono.just(game)).when(repository).findBy(any(), any());
+
+        webTestClient.put()
+                .uri("/game/join/prueba")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(new Player()), Player.class)
+                .exchange()
+                .expectStatus().is4xxClientError()
+                .expectBody(String.class)
+                .value(response -> {
+                    Assertions.assertEquals("The given game has been ended", response);
+                });
+    }
+
+    @Test
+    @DisplayName("PUT /game/join/prueba success")
+    void testJoinGameSuccess() {
+        doReturn(Mono.just(new Game("prueba", new Player(), 2))).when(repository).findBy(any(), any());
+        //doReturn(Mono.just(new Game("prueba", new Player(), 2))).when(repository).save(any());
+
+        webTestClient.put()
+                .uri("/game/join/prueba")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(new Player()), Player.class)
+                .exchange()
+                .expectStatus().is4xxClientError()
+                .expectBody(PlayerAddedToGame.class)
+                .value(response -> {
+                    Assertions.assertEquals("game.PlayerAdded", response.getType());
+                    Assertions.assertEquals("prueba", response.getAggregateId());
                 });
     }
 }

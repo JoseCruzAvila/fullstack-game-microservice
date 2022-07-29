@@ -1,9 +1,9 @@
 package co.com.sofka;
 
 import co.com.sofka.api.game.GameHandler;
-import co.com.sofka.api.game.GameRouterRest;
 import co.com.sofka.event.EventPublisher;
 import co.com.sofka.model.game.gateways.GameRepository;
+import co.com.sofka.usecase.addplayertogame.AddPlayerToGameUseCase;
 import co.com.sofka.usecase.creategame.CreateGameUseCase;
 import co.com.sofka.usecase.startgame.StartGameUseCase;
 import org.mockito.Mockito;
@@ -19,7 +19,7 @@ public class MockProvider {
 
     @Bean
     public GameHandler gameHandler() {
-        return new GameHandler(eventPublisher(), createGameUseCase(), startGameUseCase());
+        return new GameHandler(eventPublisher(), createGameUseCase(), startGameUseCase(), addPlayerToGameUseCase());
     }
 
     @Bean
@@ -30,6 +30,11 @@ public class MockProvider {
     @Bean
     public StartGameUseCase startGameUseCase() {
         return new StartGameUseCase(gameRepository());
+    }
+
+    @Bean
+    public AddPlayerToGameUseCase addPlayerToGameUseCase() {
+        return new AddPlayerToGameUseCase(gameRepository());
     }
 
     @Bean

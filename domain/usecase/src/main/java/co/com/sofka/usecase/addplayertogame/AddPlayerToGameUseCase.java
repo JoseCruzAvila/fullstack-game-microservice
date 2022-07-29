@@ -16,15 +16,30 @@ public class AddPlayerToGameUseCase {
     private final GameRepository repository;
 
     public Mono<PlayerAddedToGame> addPlayer(String gameId, Player player) {
-        var gameToUpdate = repository.findBy("gameId", gameId);
+        var gameToUpdate = repository.findBy("gameId", gameId)
+                .flatMap(this::verifyErrors)
+                .onErrorResume(this.setErrorToReturn());
 
-        return gameToUpdate.filter(Predicate.not(Game::isPlaying))
-                .switchIfEmpty(Mono.error(new GameException("The game is already started")))
-                .filter(this.verifyGameEnded())
-                .switchIfEmpty(Mono.error(new GameException("The game has ended")))
-                .map(this.addPlayerToGame(player))
+        return gameToUpdate.map(this.addPlayerToGame(player))
                 .flatMap(repository::save)
                 .map(game -> new PlayerAddedToGame(gameId, player));
+    }
+
+    private Mono<Game> verifyErrors(Game game) {
+        var data = Mono.just(game);
+
+        if (game.isPlaying().equals(true))
+            data = Mono.error(new GameException("The given game already is being played"));
+
+        if (this.verifyGameEnded().test(game))
+            data = Mono.error(new GameException("The given game has been ended"));
+
+        return data;
+    }
+
+    private Function<Throwable, Mono<Game>> setErrorToReturn() {
+        return error -> Mono.error(error.getMessage().contains("The given game")
+                ? error : new GameException("The given game doesn't exists"));
     }
 
     private Function<Game, Game> addPlayerToGame(Player player) {

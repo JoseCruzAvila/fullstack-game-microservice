@@ -45,12 +45,10 @@ public class GameHandler {
     @ExceptionHandler
     public Mono<ServerResponse> listenPUTStartGameUseCase(ServerRequest serverRequest) {
         String gameId = serverRequest.pathVariable("gameId");
-        var request = startGameUseCase.gameById(gameId)
-                .flatMap(startGameUseCase::startGame);
-
-        request.subscribe(publisher::publish);
-
-        return request.flatMap(game -> ServerResponse.ok()
+        return startGameUseCase.gameById(gameId)
+                .flatMap(startGameUseCase::startGame)
+                .doOnNext(publisher::publish)
+                .flatMap(game -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(BodyInserters.fromValue(game)))
                 .onErrorResume(this::onErrorResume);
@@ -58,12 +56,11 @@ public class GameHandler {
 
     public Mono<ServerResponse> listenPUTAddUserToGameUseCase(ServerRequest serverRequest) {
         String gameId = serverRequest.pathVariable("gameId");
-        var request = serverRequest.bodyToMono(Player.class)
-                .flatMap(player -> addPlayerToGameUseCase.addPlayer(gameId, player));
 
-        request.subscribe(publisher::publish);
-
-        return request.flatMap(player -> ServerResponse.ok()
+        return serverRequest.bodyToMono(Player.class)
+                .flatMap(player -> addPlayerToGameUseCase.addPlayer(gameId, player))
+                .doOnNext(publisher::publish)
+                .flatMap(player -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(BodyInserters.fromValue(player)))
                 .onErrorResume(this::onErrorResume);
