@@ -15,14 +15,14 @@ import java.util.function.Predicate;
 public class AddPlayerToGameUseCase {
     private final GameRepository repository;
 
-    public Mono<PlayerAddedToGame> addPlayer(String gameId, Player player) {
-        var gameToUpdate = repository.findBy("gameId", gameId)
+    public Mono<PlayerAddedToGame> addPlayer(Game game, Player player) {
+        var gameToUpdate = Mono.just(game)
                 .flatMap(this::verifyErrors)
                 .onErrorResume(this.setErrorToReturn());
 
         return gameToUpdate.map(this.addPlayerToGame(player))
                 .flatMap(repository::save)
-                .map(game -> new PlayerAddedToGame(gameId, player));
+                .map(currentGame -> new PlayerAddedToGame(currentGame.getGameId(), player));
     }
 
     private Mono<Game> verifyErrors(Game game) {

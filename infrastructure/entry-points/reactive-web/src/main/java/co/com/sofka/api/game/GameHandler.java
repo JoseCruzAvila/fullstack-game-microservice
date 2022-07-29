@@ -22,6 +22,7 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -56,13 +57,16 @@ public class GameHandler {
 
     public Mono<ServerResponse> listenPUTAddUserToGameUseCase(ServerRequest serverRequest) {
         String gameId = serverRequest.pathVariable("gameId");
+        var game = startGameUseCase.gameById(gameId);
 
         return serverRequest.bodyToMono(Player.class)
-                .flatMap(player -> addPlayerToGameUseCase.addPlayer(gameId, player))
+                .zipWith(game)
+                .flatMap(mono -> addPlayerToGameUseCase.addPlayer(mono.getT2(), mono.getT1()))
                 .doOnNext(publisher::publish)
-                .flatMap(player -> ServerResponse.ok()
+                .then(game)
+                .flatMap(currentGame -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
-                        .body(BodyInserters.fromValue(player)))
+                        .body(BodyInserters.fromValue(currentGame)))
                 .onErrorResume(this::onErrorResume);
     }
 
