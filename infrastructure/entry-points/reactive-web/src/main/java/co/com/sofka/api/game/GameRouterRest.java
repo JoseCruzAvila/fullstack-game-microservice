@@ -15,6 +15,7 @@ public class GameRouterRest {
     @Bean
     public RouterFunction<ServerResponse> gameRouterFunction(GameHandler gameHandler) {
         return route(POST("/game"), gameHandler::listenPOSTCreateGameUseCase)
-                .andRoute(PUT("/game/start/{gameId}"), gameHandler::listenPOSTStartGameUseCase);
+                .andRoute(PUT("/game/start/{gameId}"), gameHandler::listenPUTStartGameUseCase)
+                .andRoute(PUT("/game/join/{gameId}"), gameHandler::listenPUTAddUserToGameUseCase);
     }
 }

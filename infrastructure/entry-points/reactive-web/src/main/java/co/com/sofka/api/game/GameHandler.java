@@ -6,6 +6,7 @@ import co.com.sofka.generic.events.DomainEvent;
 import co.com.sofka.model.events.GameStarted;
 import co.com.sofka.model.game.Game;
 import co.com.sofka.model.player.Player;
+import co.com.sofka.usecase.addplayertogame.AddPlayerToGameUseCase;
 import co.com.sofka.usecase.creategame.CreateGameUseCase;
 import co.com.sofka.usecase.startgame.StartGameUseCase;
 import com.google.gson.Gson;
@@ -30,6 +31,7 @@ public class GameHandler {
     private final EventPublisher<DomainEvent> publisher;
     private final CreateGameUseCase createGameUseCase;
     private final StartGameUseCase startGameUseCase;
+    private final AddPlayerToGameUseCase addPlayerToGameUseCase;
 
     public Mono<ServerResponse> listenPOSTCreateGameUseCase(ServerRequest serverRequest) {
         return serverRequest.bodyToMono(Game.class)
@@ -41,7 +43,7 @@ public class GameHandler {
     }
 
     @ExceptionHandler
-    public Mono<ServerResponse> listenPOSTStartGameUseCase(ServerRequest serverRequest) {
+    public Mono<ServerResponse> listenPUTStartGameUseCase(ServerRequest serverRequest) {
         String gameId = serverRequest.pathVariable("gameId");
         var request = startGameUseCase.gameById(gameId)
                 .flatMap(startGameUseCase::startGame);
@@ -51,6 +53,19 @@ public class GameHandler {
         return request.flatMap(game -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(BodyInserters.fromValue(game)))
+                .onErrorResume(this::onErrorResume);
+    }
+
+    public Mono<ServerResponse> listenPUTAddUserToGameUseCase(ServerRequest serverRequest) {
+        String gameId = serverRequest.pathVariable("gameId");
+        var request = serverRequest.bodyToMono(Player.class)
+                .flatMap(player -> addPlayerToGameUseCase.addPlayer(gameId, player));
+
+        request.subscribe(publisher::publish);
+
+        return request.flatMap(player -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(BodyInserters.fromValue(player)))
                 .onErrorResume(this::onErrorResume);
     }
 
